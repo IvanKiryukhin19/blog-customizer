@@ -16,8 +16,6 @@ export function useLocalStorage<T>(
 	useEffect(() => {
 		try {
 			const item = JSON.stringify(value);
-			if (!window.localStorage.getItem(key))
-				window.localStorage.setItem(`${key}Initial`, item);
 			window.localStorage.setItem(key, item);
 		} catch (error) {
 			console.log(error);

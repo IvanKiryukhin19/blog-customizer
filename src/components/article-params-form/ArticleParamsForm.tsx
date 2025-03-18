@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react';
 import { ArrowButton } from 'src/ui/arrow-button';
 import { Button } from 'src/ui/button';
 import { Separator } from '../../ui/separator/Separator';
@@ -9,15 +10,14 @@ import {
 	backgroundColors,
 	contentWidthArr,
 	fontSizeOptions,
+	defaultArticleState,
 } from '../../constants/articleProps';
 import { Text } from '../../ui/text/Text';
-import { Spacing } from '../../ui/spacing/Spacing';
 import { clsx } from 'clsx';
 import styles from './ArticleParamsForm.module.scss';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-import { useState, useEffect, useRef } from 'react';
 
-type optionsStyle = {
+type OptionsStyle = {
 	font: string;
 	size: string;
 	color: string;
@@ -25,12 +25,13 @@ type optionsStyle = {
 	contentWidth: string;
 };
 
-type propsStyle = {
-	setStyleState: ({}: optionsStyle) => void;
+type ArticleParamsFormProps = {
+	setStyleState: ({}: OptionsStyle) => void;
 };
 
-export const ArticleParamsForm = (props: propsStyle) => {
-	const { setStyleState } = props;
+export const ArticleParamsForm = ({
+	setStyleState,
+}: ArticleParamsFormProps) => {
 	const [arrowIsOpen, setArrowIsOpen] = useState(false);
 	const asideRef = useRef<HTMLDivElement>(null);
 
@@ -44,45 +45,28 @@ export const ArticleParamsForm = (props: propsStyle) => {
 
 	const [valueFont, setValueFont] = useLocalStorage(
 		'font',
-		fontFamilyOptions[0]
+		defaultArticleState.fontFamilyOption
 	);
-	const [valueSize, setValueSize] = useLocalStorage('size', fontSizeOptions[0]);
-	const [valueColor, setValueColor] = useLocalStorage('color', fontColors[0]);
+	const [valueSize, setValueSize] = useLocalStorage(
+		'size',
+		defaultArticleState.fontSizeOption
+	);
+	const [valueColor, setValueColor] = useLocalStorage(
+		'color',
+		defaultArticleState.fontColor
+	);
 	const [valueBackgroundColor, setValueBackgroundColor] = useLocalStorage(
 		'backgroundColor',
-		backgroundColors[0]
+		defaultArticleState.backgroundColor
 	);
 	const [valueContentWidth, setValueContentWidth] = useLocalStorage(
 		'contentWidth',
-		contentWidthArr[0]
+		defaultArticleState.contentWidth
 	);
 
-	const handleApplyStyle = () => {
-		setStyleState({
-			font: JSON.parse(localStorage.font).value,
-			size: JSON.parse(localStorage.size).value,
-			color: JSON.parse(localStorage.color).value,
-			backgroundColor: JSON.parse(localStorage.backgroundColor).value,
-			contentWidth: JSON.parse(localStorage.contentWidth).value,
-		});
-	};
-
-	const handleReset = () => {
-		setStyleState({
-			font: JSON.parse(localStorage.fontInitial).value,
-			size: JSON.parse(localStorage.sizeInitial).value,
-			color: JSON.parse(localStorage.colorInitial).value,
-			backgroundColor: JSON.parse(localStorage.backgroundColorInitial).value,
-			contentWidth: JSON.parse(localStorage.contentWidthInitial).value,
-		});
-		setValueFont(fontFamilyOptions[0]);
-		setValueSize(fontSizeOptions[0]);
-		setValueColor(fontColors[0]);
-		setValueBackgroundColor(backgroundColors[0]);
-		setValueContentWidth(contentWidthArr[0]);
-	};
-
 	useEffect(() => {
+		if (!arrowIsOpen) return;
+
 		const handleClose = (evt: MouseEvent) => {
 			if (
 				arrowIsOpen &&
@@ -98,7 +82,32 @@ export const ArticleParamsForm = (props: propsStyle) => {
 		return () => {
 			document.removeEventListener('mousedown', handleClose);
 		};
-	});
+	}, [arrowIsOpen]);
+
+	const handleApplyStyle = () => {
+		setStyleState({
+			font: JSON.parse(localStorage.font).value,
+			size: JSON.parse(localStorage.size).value,
+			color: JSON.parse(localStorage.color).value,
+			backgroundColor: JSON.parse(localStorage.backgroundColor).value,
+			contentWidth: JSON.parse(localStorage.contentWidth).value,
+		});
+	};
+
+	const handleReset = () => {
+		setStyleState({
+			font: defaultArticleState.fontFamilyOption.value,
+			size: defaultArticleState.fontSizeOption.value,
+			color: defaultArticleState.fontColor.value,
+			backgroundColor: defaultArticleState.backgroundColor.value,
+			contentWidth: defaultArticleState.contentWidth.value,
+		});
+		setValueFont(defaultArticleState.fontFamilyOption);
+		setValueSize(defaultArticleState.fontSizeOption);
+		setValueColor(defaultArticleState.fontColor);
+		setValueBackgroundColor(defaultArticleState.backgroundColor);
+		setValueContentWidth(defaultArticleState.contentWidth);
+	};
 
 	return (
 		<div ref={asideRef}>
@@ -109,49 +118,40 @@ export const ArticleParamsForm = (props: propsStyle) => {
 				}}
 			/>
 			<aside
-				className={
-					!arrowIsOpen
-						? clsx(styles.container)
-						: clsx(styles.container, styles.container_open)
-				}>
+				className={clsx(styles.container, {
+					[styles.container_open]: arrowIsOpen,
+				})}>
 				<form className={styles.form} onSubmit={(evt) => evt.preventDefault()}>
-					<Text weight={800} size={31} uppercase={true}>
+					<Text as={'h2'} weight={800} size={31} uppercase={true}>
 						задайте параметры
 					</Text>
-					<Spacing height={50}></Spacing>
 					<Select
 						selected={valueFont}
 						options={fontFamilyOptions}
 						title={TitleList.font}
 						onChange={setValueFont}></Select>
-					<Spacing height={50}></Spacing>
 					<RadioGroup
 						name={'radio'}
 						options={fontSizeOptions}
 						selected={valueSize}
 						title={TitleList.size}
 						onChange={setValueSize}></RadioGroup>
-					<Spacing height={50}></Spacing>
 					<Select
 						selected={valueColor}
 						options={fontColors}
 						title={TitleList.color}
 						onChange={setValueColor}></Select>
-					<Spacing height={50}></Spacing>
-					<Separator></Separator>
-					<Spacing height={50}></Spacing>
+					<Separator />
 					<Select
 						selected={valueBackgroundColor}
 						options={backgroundColors}
 						title={TitleList.backgroundColor}
 						onChange={setValueBackgroundColor}></Select>
-					<Spacing height={50}></Spacing>
 					<Select
 						selected={valueContentWidth}
 						options={contentWidthArr}
 						title={TitleList.contentWidth}
 						onChange={setValueContentWidth}></Select>
-					<Spacing height={137}></Spacing>
 					<div className={styles.bottomContainer}>
 						<Button
 							title='Сбросить'
